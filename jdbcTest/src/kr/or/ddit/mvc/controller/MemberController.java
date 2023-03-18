@@ -14,6 +14,7 @@ public class MemberController {
 	private IMemberService service; // Service객체 변수 선언
 
 	public MemberController() {
+		System.err.println("마강상하");
 		scan = new Scanner(System.in);
 		service = new MemberServiceImpl(); // Service객체 생성
 	}
