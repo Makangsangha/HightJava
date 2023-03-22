@@ -7,18 +7,27 @@ import kr.or.ddit.mvc.dao.IMemberDao;
 import kr.or.ddit.mvc.dao.MemberDaoImpl;
 import kr.or.ddit.mvc.vo.MemberVO;
 
-public class MemberServiceImpl implements IMemberService{
+public class MemberServiceImpl implements IMemberService {
+	private static MemberServiceImpl service;
+
 	// 일을 시킬 DAO객체 변수 선언
-	private IMemberDao dao;
-	
-	// 생성자
-	public MemberServiceImpl() {
-		dao = new MemberDaoImpl(); //DAO객체 생성
+	private IMemberDao dao = MemberDaoImpl.getInstance();
+
+	private MemberServiceImpl() {
+
 	}
-	
+
+	public static MemberServiceImpl getInstance() {
+		if (service == null) {
+			service = new MemberServiceImpl();
+		}
+		return service;
+
+	}
+
 	@Override
 	public int insertMember(MemberVO memVo) {
-		return dao.insertMember(memVo); 
+		return dao.insertMember(memVo);
 	}
 
 	@Override
@@ -32,8 +41,8 @@ public class MemberServiceImpl implements IMemberService{
 	}
 
 	@Override
-	public int updateMember2(String memId, String updateField, String updateData) {
-		return dao.updateMember2(memId,updateField,updateData);
+	public int updateMember2(Map<String, String> paramMap) {
+		return dao.updateMember2(paramMap);
 	}
 
 	@Override
@@ -47,8 +56,8 @@ public class MemberServiceImpl implements IMemberService{
 	}
 
 	@Override
-	public int updateMember3(String id, Map<String, String> dataMap) {
-		return dao.updateMember3(id, dataMap);
+	public int updateMember3(Map<String, String> dataMap) {
+		return dao.updateMember3(dataMap);
 	}
 
 }

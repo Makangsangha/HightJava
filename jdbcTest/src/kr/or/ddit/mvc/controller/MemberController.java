@@ -1,5 +1,6 @@
 package kr.or.ddit.mvc.controller;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,9 +15,8 @@ public class MemberController {
 	private IMemberService service; // Service객체 변수 선언
 
 	public MemberController() {
-		System.err.println("마강상하");
 		scan = new Scanner(System.in);
-		service = new MemberServiceImpl(); // Service객체 생성
+		service = MemberServiceImpl.getInstance(); // Service객체 생성
 	}
 
 	public static void main(String[] args) {
@@ -77,16 +77,19 @@ public class MemberController {
 		System.out.println();
 		System.out.println("수정할 회원 정보를 입력하세요...");
 		System.out.print("회원ID >> ");
-		String id = scan.next();
-
-		int count = service.getMemberCount(id);
+		String memId = scan.next();
+		
+		int count = service.getMemberCount(memId);
 		if (count == 0) {
-			System.out.println(id + "는(은) 없는 회원ID 입니다...");
+			System.out.println(memId + "는(은) 없는 회원ID 입니다...");
 			System.out.println("수정 작업을 마칩니다...");
 			return;
 		}
 		Map<String, String> dataMap = new HashMap<>();
-
+		
+		//Map에 검색할 회원ID값을 'memId'키값으로 넣어준다.
+		dataMap.put("memId", memId);
+		
 		System.out.println();
 		scan.nextLine(); // 버퍼 지우기
 		System.out.print("새로운 비밀번호 >> ");
@@ -106,16 +109,21 @@ public class MemberController {
 		if (!"".equals(newTel)) {
 			dataMap.put("mem_tel", newTel);
 		}
-		
+
 		System.out.print("새로운 회원주소>> ");
 		String newAddr = scan.nextLine().trim();
 		if (!"".equals(newAddr)) {
 			dataMap.put("mem_addr", newAddr);
 		}
-		
-		int cnt = service.updateMember3(id, dataMap);
 
+		int cnt = service.updateMember3(dataMap);
 		
+		if (cnt > 0) {
+			System.out.println(memId + " 회원 정보 수정 완료!!!");
+		} else {
+			System.out.println(memId + " 회원 정보 수정 실패...");
+		}
+
 	}
 
 	private void updateMember2() {
@@ -132,7 +140,6 @@ public class MemberController {
 		}
 		int num;
 		String updateField = null;
-		String updateFiledTitle = null;
 		do {
 			System.out.println();
 			System.out.println("수정할 항목을 선택하세요...");
@@ -145,19 +152,15 @@ public class MemberController {
 			switch (num) {
 			case 1:
 				updateField = "mem_pass";
-				updateFiledTitle = "비밀번호";
 				break;
 			case 2:
 				updateField = "mem_name";
-				updateFiledTitle = "회원이름";
 				break;
 			case 3:
 				updateField = "mem_tel";
-				updateFiledTitle = "전화번호";
 				break;
 			case 4:
 				updateField = "mem_addr";
-				updateFiledTitle = "회원주소";
 				break;
 			default:
 				System.out.println("수정 항목을 잘못 선택했습니다.");
@@ -171,9 +174,17 @@ public class MemberController {
 		System.out.println();
 		System.out.print("새로운 데이터 >> ");
 		String updateData = scan.nextLine();
+
 		
-		int cnt = service.updateMember2(memId, updateField, updateData);
-		
+		//구성한 데이터들을 Map에 추가한다.
+		//Map의 정보 ==> key값 : 수정할 컬럼명(field), 수정할 데이터(data), 검색할 회원ID(memId)
+		Map<String, String> paramMap = new HashMap<>();	//Map객체 생성
+		paramMap.put("field", updateField);	// 수정할 컬럼명
+		paramMap.put("data", updateData);  // 수정할 데이터
+		paramMap.put("memId", memId);   // 검색할 회원ID
+
+		int cnt = service.updateMember2(paramMap);
+
 		if (cnt > 0) {
 			System.out.println(memId + " 회원 정보 수정 완료!!!");
 		} else {
@@ -181,6 +192,7 @@ public class MemberController {
 		}
 	}
 
+	// 회원정보를 수정하는 메소드 -- 전체 항목 수정
 	private void updateMember() {
 		System.out.println();
 		System.out.println("수정할 회원 정보를 입력하세요...");
@@ -193,7 +205,7 @@ public class MemberController {
 			System.out.println("수정 작업을 마칩니다...");
 			return;
 		}
-		
+
 		System.out.println();
 		System.out.print("새로운 비밀번호 >> ");
 		String pass = scan.next();
@@ -204,18 +216,18 @@ public class MemberController {
 		System.out.print("새로운 전화번호 >> ");
 		String tel = scan.next();
 
-		scan.nextLine();
+		scan.nextLine(); // 버퍼 지우기
 		System.out.print("새로운 회원주소>> ");
 		String addr = scan.nextLine();
-		
+
 		memVo.setMem_id(id);
 		memVo.setMem_pass(pass);
 		memVo.setMem_name(name);
 		memVo.setMem_tel(tel);
 		memVo.setMem_addr(addr);
-		
+
 		int cnt = service.updateMember(memVo);
-				
+
 		if (cnt > 0) {
 			System.out.println(id + " 회원 정보 수정 완료!!!");
 		} else {
@@ -223,6 +235,7 @@ public class MemberController {
 		}
 	}
 
+	// 회원정보를 삭제하는 메소드
 	private void deleteMeber() {
 		System.out.println();
 		System.out.println("삭제할 회원 정보를 입력하세요...");
@@ -230,7 +243,7 @@ public class MemberController {
 		String id = scan.next();
 
 		int cnt = service.deleteMember(id);
-		
+
 		if (cnt > 0) {
 			System.out.println(id + " 회원 정보 삭제 완료!!!");
 		} else {
@@ -246,16 +259,15 @@ public class MemberController {
 		System.out.println("--------------------------------------------------------------");
 		List<MemberVO> list = service.getAllMember();
 
-		if (!list.isEmpty()) {
+		if (list == null || list.size() == 0) {
+			System.out.println("저장되어있는 사람이 없습니다.");
+		} else {
 			for (MemberVO vo : list) {
 				System.out.println(vo.getMem_id() + "\t" + vo.getMem_pass() + "\t" + vo.getMem_name() + "\t"
 						+ vo.getMem_tel() + "\t" + vo.getMem_addr() + "\t");
 			}
-		}else {
-			System.out.println("저장되어있는 사람이 없습니다.");
 		}
-		
-		
+
 	}
 
 	// 자료를 추가하는 메소드
